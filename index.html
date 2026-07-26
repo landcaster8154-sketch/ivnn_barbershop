@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>La Pelu de Iván</title>
+<title>IVNN Barber Shop</title>
 <meta name="theme-color" content="#14110f" />
 <link rel="manifest" href="manifest.json" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
   <!-- Pantalla de carga -->
   <div id="loading-screen">
     <div class="pole"></div>
-    <p>Cargando La Pelu de Iván…</p>
+    <p>Cargando IVNN Barber Shop…</p>
   </div>
 
   <!-- Aviso si falta configurar Firebase -->
@@ -48,9 +48,24 @@
     <div class="content-wrap">
       <header class="topbar">
         <div class="brand">
-          <h1>La Pelu de <span class="accent">Iván</span></h1>
+          <svg class="brand-logo" width="34" height="34" viewBox="0 0 40 40" role="img" aria-label="Farol de barbería">
+            <rect x="14" y="4" width="12" height="4" rx="1" fill="var(--gold)"/>
+            <rect x="12" y="30" width="16" height="5" rx="1" fill="var(--gold)"/>
+            <clipPath id="poleClip"><rect x="15" y="8" width="10" height="22" rx="5"/></clipPath>
+            <g clip-path="url(#poleClip)">
+              <rect x="15" y="8" width="10" height="44" fill="var(--text)"/>
+              <g id="pole-stripes">
+                <rect x="15" y="8" width="10" height="6" fill="var(--red)" transform="skewY(-30)"/>
+                <rect x="15" y="16" width="10" height="6" fill="var(--gold)" transform="skewY(-30)"/>
+                <rect x="15" y="24" width="10" height="6" fill="var(--red)" transform="skewY(-30)"/>
+                <rect x="15" y="32" width="10" height="6" fill="var(--gold)" transform="skewY(-30)"/>
+                <rect x="15" y="40" width="10" height="6" fill="var(--red)" transform="skewY(-30)"/>
+              </g>
+            </g>
+          </svg>
+          <h1>IVNN <span class="accent">Barber Shop</span></h1>
         </div>
-        <div class="sub" id="header-sub">Barbería de caballeros</div>
+        <div class="sub" id="header-sub">Peluquería de caballeros</div>
       </header>
       <div class="stripe"></div>
 

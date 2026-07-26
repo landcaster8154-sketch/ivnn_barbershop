@@ -113,7 +113,13 @@ header.topbar {
   background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
   position: sticky; top: 0; z-index: 50;
 }
-.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-logo { flex-shrink: 0; }
+.brand-logo #pole-stripes { animation: pole-logo-spin 1.2s linear infinite; transform-box: fill-box; }
+@keyframes pole-logo-spin { from { transform: translateY(-32px); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo #pole-stripes { animation: none; }
+}
 .brand h1 {
   font-family: var(--font-display);
   font-size: 22px;
@@ -282,6 +288,43 @@ nav.tabbar button.active { color: var(--gold); }
 .cliente-nombre { font-weight: 600; font-size: 15px; }
 .cliente-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 .cliente-arrow { margin-left: auto; color: var(--text-faint); }
+
+/* ---------- tabla estilo Excel (solo PC, Clientes e Historial) ---------- */
+.data-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: auto;
+}
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.data-table thead th {
+  text-align: left;
+  padding: 9px 12px;
+  color: var(--gold);
+  font-weight: 500;
+  background: var(--surface-2);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+table.data-table thead th:last-child { border-right: none; }
+table.data-table thead th.num, table.data-table td.num { text-align: right; }
+table.data-table tbody td {
+  padding: 8px 12px;
+  border-right: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  color: var(--text);
+}
+table.data-table tbody td:last-child { border-right: none; }
+table.data-table tbody tr:nth-child(even) { background: var(--surface-2); }
+table.data-table tbody tr { cursor: pointer; }
+table.data-table tbody tr:hover { background: var(--surface-3); }
+table.data-table td.muted { color: var(--text-muted); }
+table.data-table td.gold { color: var(--gold); font-family: var(--font-display); }
+table.data-table td.notas { color: var(--text-muted); font-style: italic; }
 
 /* ---------- historial ---------- */
 .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 10px; }
