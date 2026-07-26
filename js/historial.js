@@ -32,6 +32,34 @@ const Historial = {
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           <p>Todavía no hay servicios registrados como completados.</p>
         </div>`;
+    } else if (UI.isDesktop()) {
+      list.innerHTML = `
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                ${!clienteFiltro ? '<th>Cliente</th>' : ''}
+                <th>Servicio</th>
+                <th>Notas</th>
+                <th class="num">Precio</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(c => `
+                <tr>
+                  <td class="muted">${UI.fechaCorta(c.fecha)}</td>
+                  <td class="muted">${c.hora}</td>
+                  ${!clienteFiltro ? `<td>${c.clienteNombre}</td>` : ''}
+                  <td>${c.servicioNombre}</td>
+                  <td class="notas">${c.notas || '—'}</td>
+                  <td class="num gold">${UI.euros(c.coste)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>`;
     } else {
       list.innerHTML = items.map(c => `
         <div class="hist-item">

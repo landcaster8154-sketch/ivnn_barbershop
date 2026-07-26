@@ -11,6 +11,16 @@ const UI = {
       b.classList.toggle('active', b.dataset.view === name);
     });
     window.scrollTo(0, 0);
+
+    // Repintar la vista al entrar en ella, aunque los datos ya llevaran
+    // un rato cargados (si no, se quedaba en blanco hasta el próximo
+    // cambio en Firebase).
+    if (typeof STATE !== 'undefined') {
+      if (name === 'agenda' && typeof Citas !== 'undefined') Citas.render();
+      if (name === 'clientes' && typeof Clientes !== 'undefined') Clientes.render();
+      if (name === 'historial' && typeof Historial !== 'undefined') Historial.render();
+      if (name === 'ajustes' && typeof Servicios !== 'undefined') Servicios.render();
+    }
   },
 
   // ---------- toast ----------
@@ -52,6 +62,9 @@ const UI = {
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   },
+  isDesktop() {
+    return window.matchMedia('(min-width: 860px)').matches;
+  },
   iniciales(nombre) {
     return (nombre || '?').trim().split(/\s+/).slice(0, 2).map(s => s[0]?.toUpperCase() || '').join('');
   }
@@ -65,4 +78,16 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
 // Navegación de pestañas
 document.querySelectorAll('nav.tabbar button').forEach(btn => {
   btn.addEventListener('click', () => UI.showView(btn.dataset.view));
+});
+
+// Al cruzar el punto de ruptura PC/móvil, redibujar Clientes e Historial
+// (tabla estilo Excel en PC, tarjetas en móvil)
+let _lastIsDesktop = UI.isDesktop();
+window.addEventListener('resize', () => {
+  const nowDesktop = UI.isDesktop();
+  if (nowDesktop !== _lastIsDesktop) {
+    _lastIsDesktop = nowDesktop;
+    if (typeof Clientes !== 'undefined') Clientes.render();
+    if (typeof Historial !== 'undefined') Historial.render();
+  }
 });

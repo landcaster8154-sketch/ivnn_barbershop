@@ -19,6 +19,42 @@ const Clientes = {
       return;
     }
 
+    if (UI.isDesktop()) {
+      list.innerHTML = `
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Notas</th>
+                <th>Última visita</th>
+                <th class="num">Total gastado</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(c => {
+                const citasCliente = STATE.citas.filter(ci => ci.clienteId === c.id && ci.estado === 'completada');
+                const total = citasCliente.reduce((s, ci) => s + (Number(ci.coste) || 0), 0);
+                const ultima = citasCliente.sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora))[0];
+                return `
+                <tr data-id="${c.id}">
+                  <td>${c.nombre}</td>
+                  <td class="muted">${c.telefono || '—'}</td>
+                  <td class="notas">${c.notas || '—'}</td>
+                  <td class="muted">${ultima ? UI.fechaCorta(ultima.fecha) : '—'}</td>
+                  <td class="num gold">${UI.euros(total)}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>`;
+      list.querySelectorAll('tbody tr').forEach(row => {
+        row.addEventListener('click', () => this.openDetail(row.dataset.id));
+      });
+      return;
+    }
+
     list.innerHTML = items.map(c => `
       <div class="cliente-row" data-id="${c.id}">
         <div class="cliente-avatar">${UI.iniciales(c.nombre)}</div>
