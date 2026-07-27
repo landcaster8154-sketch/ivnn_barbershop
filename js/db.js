@@ -6,7 +6,7 @@ const DB = {
   ready: false,
   fs: null,
 
- async init() {
+  async init() {
     if (!window.FIREBASE_CONFIGURED) {
       document.getElementById('loading-screen').style.display = 'none';
       document.getElementById('setup-warning').style.display = 'block';
@@ -18,10 +18,7 @@ const DB = {
     this.fs = firebase.firestore();
     this.ready = true;
 
-    // Ejecutamos la autenticación en segundo plano sin bloquear el flujo principal
-    firebase.auth().signInAnonymously().catch(err => {
-      console.warn("Aviso de Auth Anónima (ignorable en desarrollo):", err.message);
-    });
+    // Eliminada por completo la autenticación anónima para evitar conflictos con las reglas abiertas (allow read, write: if true;)
   },
 
   // ---------- helpers genéricos ----------
