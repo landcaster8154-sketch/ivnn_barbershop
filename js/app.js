@@ -14,14 +14,15 @@ async function bootstrap() {
   STATE.selectedDate = UI.hoyISO();
 
   try {
+    // Inicializa la conexión real con tu Firebase base de datos
     await DB.init();
+    console.log("🔥 Conexión exitosa con Cloud Firestore.");
   } catch (e) {
-    console.warn(e.message);
-    return; // el aviso de configuración ya se muestra desde db.js
+    console.error("Fallo crítico en la inicialización:", e.message);
+    return; 
   }
 
-  // Suscripciones en tiempo real: cualquier cambio (desde el PC o el
-  // móvil) se refleja al instante en todos los dispositivos abiertos.
+  // Suscripciones en tiempo real activas
   DB.listen('clientes', (data) => {
     STATE.clientes = data;
     if (document.getElementById('view-clientes').classList.contains('active')) Clientes.render();
@@ -37,11 +38,13 @@ async function bootstrap() {
 
   DB.listen('servicios', (data) => {
     STATE.servicios = data;
-    Servicios.render();
+    if (typeof Servicios !== 'undefined' && Servicios.render) Servicios.render();
   }, 'nombre');
 
+  // Transición de interfaz: Ocultar pantalla de carga
   document.getElementById('loading-screen').style.display = 'none';
   document.getElementById('app').classList.add('visible');
 }
 
+// Inicialización de la SPA
 bootstrap();
