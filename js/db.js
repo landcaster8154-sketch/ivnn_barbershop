@@ -6,20 +6,22 @@ const DB = {
   ready: false,
   fs: null,
 
-  async init() {
+ async init() {
     if (!window.FIREBASE_CONFIGURED) {
       document.getElementById('loading-screen').style.display = 'none';
       document.getElementById('setup-warning').style.display = 'block';
       throw new Error('Firebase no configurado');
     }
+    
+    // Inicialización del servicio SDK
     firebase.initializeApp(window.firebaseConfig);
     this.fs = firebase.firestore();
-
-    // Autenticación anónima: no hace falta usuario/contraseña,
-    // solo sirve para que las reglas de seguridad de Firestore
-    // permitan leer/escribir únicamente a esta app.
-    await firebase.auth().signInAnonymously();
     this.ready = true;
+
+    // Ejecutamos la autenticación en segundo plano sin bloquear el flujo principal
+    firebase.auth().signInAnonymously().catch(err => {
+      console.warn("Aviso de Auth Anónima (ignorable en desarrollo):", err.message);
+    });
   },
 
   // ---------- helpers genéricos ----------
