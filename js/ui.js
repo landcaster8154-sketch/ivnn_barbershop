@@ -5,16 +5,18 @@
 const UI = {
   // ---------- navegación entre pestañas ----------
   showView(name) {
+    const viewEl = document.getElementById(`view-${name}`);
+    if (!viewEl) return; // Protección por si no existe la vista
+
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(`view-${name}`).classList.add('active');
-    document.querySelectorAll('nav.tabbar button').forEach(b => {
+    viewEl.classList.add('active');
+    
+    document.querySelectorAll('.tabbar button').forEach(b => {
       b.classList.toggle('active', b.dataset.view === name);
     });
     window.scrollTo(0, 0);
 
-    // Repintar la vista al entrar en ella, aunque los datos ya llevaran
-    // un rato cargados (si no, se quedaba en blanco hasta el próximo
-    // cambio en Firebase).
+    // Repintar la vista al entrar en ella con seguridad
     if (typeof STATE !== 'undefined') {
       if (name === 'agenda' && typeof Citas !== 'undefined') Citas.render();
       if (name === 'clientes' && typeof Clientes !== 'undefined') Clientes.render();
@@ -26,6 +28,7 @@ const UI = {
   // ---------- toast ----------
   toast(msg) {
     const t = document.getElementById('toast');
+    if (!t) return;
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(this._toastTimer);
@@ -34,11 +37,16 @@ const UI = {
 
   // ---------- modal ----------
   openModal(html) {
-    document.getElementById('modal-content').innerHTML = html;
-    document.getElementById('modal-overlay').classList.add('open');
+    const content = document.getElementById('modal-content');
+    const overlay = document.getElementById('modal-overlay');
+    if (content && overlay) {
+      content.innerHTML = html;
+      overlay.classList.add('open');
+    }
   },
   closeModal() {
-    document.getElementById('modal-overlay').classList.remove('open');
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) overlay.classList.remove('open');
   },
 
   // ---------- helpers de formato ----------
@@ -70,18 +78,26 @@ const UI = {
   }
 };
 
-// Cerrar modal al pulsar fuera de él
-document.getElementById('modal-overlay').addEventListener('click', (e) => {
-  if (e.target.id === 'modal-overlay') UI.closeModal();
-});
+// Inicialización segura cuando el HTML esté completamente listo
+document.addEventListener('DOMContentLoaded', () => {
+  // Cerrar modal al pulsar fuera de él
+  const overlay = document.getElementById('modal-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target.id === 'modal-overlay') UI.closeModal();
+    });
+  }
 
-// Navegación de pestañas
-document.querySelectorAll('nav.tabbar button').forEach(btn => {
-  btn.addEventListener('click', () => UI.showView(btn.dataset.view));
+  // Activar la navegación de pestañas en los botones reales
+  document.querySelectorAll('.tabbar button, nav.tabbar button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const viewName = btn.dataset.view || btn.getAttribute('data-view');
+      if (viewName) UI.showView(viewName);
+    });
+  });
 });
 
 // Al cruzar el punto de ruptura PC/móvil, redibujar Clientes e Historial
-// (tabla estilo Excel en PC, tarjetas en móvil)
 let _lastIsDesktop = UI.isDesktop();
 window.addEventListener('resize', () => {
   const nowDesktop = UI.isDesktop();
