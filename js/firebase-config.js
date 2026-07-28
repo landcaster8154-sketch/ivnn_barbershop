@@ -8,3 +8,4 @@ window.firebaseConfig = {
 };
 
 window.FIREBASE_CONFIGURED = true;
+
