@@ -22,24 +22,37 @@ async function bootstrap() {
     return; 
   }
 
-  // Suscripciones en tiempo real activas
+  // Suscripciones en tiempo real activas (Renderizan siempre al recibir datos)
   DB.listen('clientes', (data) => {
     STATE.clientes = data;
-    if (document.getElementById('view-clientes').classList.contains('active')) Clientes.render();
-    if (document.getElementById('view-historial').classList.contains('active')) Historial.render();
+    Clientes.render();
+    if (typeof Historial !== 'undefined' && Historial.render) Historial.render();
   });
 
   DB.listen('citas', (data) => {
     STATE.citas = data;
     Citas.render();
-    if (document.getElementById('view-historial').classList.contains('active')) Historial.render();
-    if (document.getElementById('view-clientes').classList.contains('active')) Clientes.render();
+    if (typeof Historial !== 'undefined' && Historial.render) Historial.render();
+    Clientes.render();
   });
 
   DB.listen('servicios', (data) => {
     STATE.servicios = data;
     if (typeof Servicios !== 'undefined' && Servicios.render) Servicios.render();
   }, 'nombre');
+
+  // Asegurar que al cambiar de pestaña en el menú se vuelva a renderizar la vista seleccionada
+  document.querySelectorAll('.tabbar button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setTimeout(() => {
+        const activeView = btn.getAttribute('data-view');
+        if (activeView === 'clientes') Clientes.render();
+        if (activeView === 'agenda') Citas.render();
+        if (activeView === 'historial' && typeof Historial !== 'undefined' && Historial.render) Historial.render();
+        if (activeView === 'ajustes' && typeof Servicios !== 'undefined' && Servicios.render) Servicios.render();
+      }, 50);
+    });
+  });
 
   // Transición de interfaz: Ocultar pantalla de carga
   document.getElementById('loading-screen').style.display = 'none';
