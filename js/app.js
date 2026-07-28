@@ -36,10 +36,11 @@ async function bootstrap() {
     Clientes.render();
   });
 
+  // Escucha de servicios corregida (sin el parámetro de ordenamiento que congelaba la app)
   DB.listen('servicios', (data) => {
     STATE.servicios = data;
     if (typeof Servicios !== 'undefined' && Servicios.render) Servicios.render();
-  }, 'nombre');
+  });
 
   // Asegurar que al cambiar de pestaña en el menú se vuelva a renderizar la vista seleccionada
   document.querySelectorAll('.tabbar button').forEach(btn => {
