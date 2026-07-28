@@ -24,6 +24,9 @@ async function bootstrap() {
 
   // Suscripciones en tiempo real activas (Renderizan siempre al recibir datos)
   DB.listen('clientes', (data) => {
+    // DIAGNÓSTICO: Ver qué datos exactos están llegando desde Firebase Firestore
+    console.log("📦 Datos recibidos de la colección 'clientes':", data);
+    
     STATE.clientes = data;
     Clientes.render();
     if (typeof Historial !== 'undefined' && Historial.render) Historial.render();
