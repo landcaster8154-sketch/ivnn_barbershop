@@ -180,4 +180,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const buscarCli = document.getElementById('buscar-cliente');
   if (buscarCli) buscarCli.addEventListener('input', () => Clientes.render());
+
+  // DETECTOR DE EMERGENCIA: Forzar renderizado en cascada al cambiar de pestaña
+  document.querySelectorAll('.tabbar button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setTimeout(() => { Clientes.render(); }, 50);
+      setTimeout(() => { Clientes.render(); }, 150);
+      setTimeout(() => { Clientes.render(); }, 300);
+    });
+  });
 });
