@@ -6,8 +6,17 @@ const Clientes = {
 
   render() {
     const list = document.getElementById('clientes-list');
-    const term = (document.getElementById('buscar-cliente').value || '').trim().toLowerCase();
-    let items = [...STATE.clientes].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    if (!list) return; // Protección por si la lista no está en el DOM todavía
+
+    const buscarInput = document.getElementById('buscar-cliente');
+    const term = (buscarInput ? buscarInput.value : '').trim().toLowerCase();
+    
+    // Filtramos y aseguramos que 'c.nombre' exista siempre para evitar cuelgues
+    let items = [...(STATE.clientes || [])].filter(c => c && c.nombre);
+    
+    // Ordenamos con seguridad
+    items.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    
     if (term) items = items.filter(c => c.nombre.toLowerCase().includes(term));
 
     if (items.length === 0) {
@@ -34,9 +43,9 @@ const Clientes = {
             </thead>
             <tbody>
               ${items.map(c => {
-                const citasCliente = STATE.citas.filter(ci => ci.clienteId === c.id && ci.estado === 'completada');
+                const citasCliente = (STATE.citas || []).filter(ci => ci && ci.clienteId === c.id && ci.estado === 'completada');
                 const total = citasCliente.reduce((s, ci) => s + (Number(ci.coste) || 0), 0);
-                const ultima = citasCliente.sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora))[0];
+                const ultima = citasCliente.sort((a, b) => ((b.fecha || '') + (b.hora || '')).localeCompare((a.fecha || '') + (a.hora || '')))[0];
                 return `
                 <tr data-id="${c.id}">
                   <td>${c.nombre}</td>
@@ -164,5 +173,11 @@ const Clientes = {
   }
 };
 
-document.getElementById('btn-nuevo-cliente').addEventListener('click', () => Clientes.openForm());
-document.getElementById('buscar-cliente').addEventListener('input', () => Clientes.render());
+// Inicialización segura de eventos (espera a que existan en el documento)
+document.addEventListener('DOMContentLoaded', () => {
+  const btnNuevo = document.getElementById('btn-nuevo-cliente');
+  if (btnNuevo) btnNuevo.addEventListener('click', () => Clientes.openForm());
+
+  const buscarCli = document.getElementById('buscar-cliente');
+  if (buscarCli) buscarCli.addEventListener('input', () => Clientes.render());
+});
