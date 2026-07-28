@@ -17,8 +17,6 @@ const DB = {
     firebase.initializeApp(window.firebaseConfig);
     this.fs = firebase.firestore();
     this.ready = true;
-
-    // Eliminada por completo la autenticación anónima para evitar conflictos con las reglas abiertas (allow read, write: if true;)
   },
 
   // ---------- helpers genéricos ----------
@@ -49,11 +47,9 @@ const DB = {
     return doc.exists ? { id: doc.id, ...doc.data() } : null;
   },
 
-  // Escucha en tiempo real (para que PC y móvil se sincronicen solos)
-  listen(colName, callback, orderField) {
-    let q = this.col(colName);
-    if (orderField) q = q.orderBy(orderField);
-    return q.onSnapshot(snap => {
+  // Escucha en tiempo real simplificada (Evita el bloqueo de índices de Firebase)
+  listen(colName, callback) {
+    return this.col(colName).onSnapshot(snap => {
       callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, err => console.error(`Error escuchando ${colName}:`, err));
   }
