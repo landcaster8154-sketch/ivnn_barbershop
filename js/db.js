@@ -47,10 +47,12 @@ const DB = {
     return doc.exists ? { id: doc.id, ...doc.data() } : null;
   },
 
-  // Escucha en tiempo real simplificada (Evita el bloqueo de índices de Firebase)
+// Escucha en tiempo real simplificada (Evita el bloqueo de índices de Firebase)
   listen(colName, callback) {
-    return this.col(colName).onSnapshot(snap => {
+    return this.col(colName).onSnapshot({ includeMetadataChanges: true }, snap => {
+      // Evitamos procesar estados intermedios vacíos mientras conecta al servidor
+      if (snap.metadata.fromCache && snap.docs.length === 0) return;
+      
       callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, err => console.error(`Error escuchando ${colName}:`, err));
   }
-};
