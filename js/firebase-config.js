@@ -1,4 +1,3 @@
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBIgGDJtyFCTmoFGpJHe17TsNPNbgb6aqg",
   authDomain: "ivnnbarbershop.firebaseapp.com",
