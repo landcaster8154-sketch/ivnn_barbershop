@@ -47,7 +47,7 @@ const DB = {
     return doc.exists ? { id: doc.id, ...doc.data() } : null;
   },
 
-// Escucha en tiempo real simplificada (Evita el bloqueo de índices de Firebase)
+  // Escucha en tiempo real con control de caché del servidor
   listen(colName, callback) {
     return this.col(colName).onSnapshot({ includeMetadataChanges: true }, snap => {
       // Evitamos procesar estados intermedios vacíos mientras conecta al servidor
@@ -56,3 +56,4 @@ const DB = {
       callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, err => console.error(`Error escuchando ${colName}:`, err));
   }
+};
