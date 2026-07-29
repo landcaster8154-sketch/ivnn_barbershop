@@ -168,25 +168,29 @@ const Clientes = {
       UI.closeModal();
       STATE.selectedClienteId = id;
       UI.showView('historial');
-      Historial.render();
+      if (typeof Historial !== 'undefined' && Historial.render) Historial.render();
     });
   }
 };
 
-// Inicialización segura de eventos (espera a que existan en el documento)
+// Inicialización e interceptor global de clics para evitar botones "muertos"
 document.addEventListener('DOMContentLoaded', () => {
-  const btnNuevo = document.getElementById('btn-nuevo-cliente');
-  if (btnNuevo) btnNuevo.addEventListener('click', () => Clientes.openForm());
-
+  // Escucha de buscador si existe
   const buscarCli = document.getElementById('buscar-cliente');
   if (buscarCli) buscarCli.addEventListener('input', () => Clientes.render());
 
-  // DETECTOR DE EMERGENCIA: Forzar renderizado en cascada al cambiar de pestaña
+  // Delegación global: Captura el clic del botón "+ Nuevo" sin importar cuándo se renderice
+  document.addEventListener('click', (e) => {
+    if (e.target && (e.target.id === 'btn-nuevo-cliente' || e.target.closest('#btn-nuevo-cliente'))) {
+      Clientes.openForm();
+    }
+  });
+
+  // Detector de pestañas
   document.querySelectorAll('.tabbar button').forEach(btn => {
     btn.addEventListener('click', () => {
       setTimeout(() => { Clientes.render(); }, 50);
       setTimeout(() => { Clientes.render(); }, 150);
-      setTimeout(() => { Clientes.render(); }, 300);
     });
   });
 });
