@@ -178,16 +178,21 @@ const Citas = {
       let clienteId = inputId.value;
       const clienteNombre = inputNombre.value.trim();
       
-      // Si el cliente es nuevo, lo lanzamos a Firebase en paralelo sin bloquear el submit
+      // SOLUCIÓN CRÍTICA: Bloquear con await para obtener el ID real de Firebase antes de proceder
       if (!clienteId) {
         const existente = STATE.clientes.find(c => c.nombre.toLowerCase() === clienteNombre.toLowerCase());
         if (existente) {
           clienteId = existente.id;
         } else {
-          clienteId = 'temp_' + Date.now();
-          DB.add('clientes', { nombre: clienteNombre, telefono: '', notas: '' }).then(newId => {
-            console.log("Cliente nuevo registrado con ID:", newId);
-          });
+          try {
+            // Esperamos la creación del cliente real en la base de datos
+            clienteId = await DB.add('clientes', { nombre: clienteNombre, telefono: '', notas: '' });
+            console.log("Cliente nuevo registrado con éxito. ID Real:", clienteId);
+          } catch (err) {
+            console.error("Error al registrar el cliente nuevo:", err);
+            UI.toast('Error al crear el cliente');
+            return;
+          }
         }
       }
 
@@ -211,13 +216,8 @@ const Citas = {
       }
       
       UI.closeModal();
-      
-      // Pequeño retardo controlado para asegurar que pinte tras cerrar la modal
-      setTimeout(() => { 
-        if (typeof Citas !== 'undefined' && Citas.render) {
-          Citas.render(); 
-        }
-      }, 200);
+      // Ya no forzamos Citas.render() con un temporizador aquí.
+      // El escuchador reactivo DB.listen('citas') de app.js se encargará de pintar todo solo.
     });
 
     if (isEdit) {
@@ -226,11 +226,6 @@ const Citas = {
         await DB.remove('citas', cita.id);
         UI.toast('Cita eliminada');
         UI.closeModal();
-        setTimeout(() => { 
-          if (typeof Citas !== 'undefined' && Citas.render) {
-            Citas.render(); 
-          }
-        }, 200);
       });
     }
   },
