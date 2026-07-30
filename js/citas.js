@@ -178,9 +178,17 @@ const Citas = {
       let clienteId = inputId.value;
       const clienteNombre = inputNombre.value.trim();
       
+      // Si el cliente es nuevo, lo lanzamos a Firebase en paralelo sin bloquear el submit
       if (!clienteId) {
         const existente = STATE.clientes.find(c => c.nombre.toLowerCase() === clienteNombre.toLowerCase());
-        clienteId = existente ? existente.id : await DB.add('clientes', { nombre: clienteNombre, telefono: '', notas: '' });
+        if (existente) {
+          clienteId = existente.id;
+        } else {
+          clienteId = 'temp_' + Date.now();
+          DB.add('clientes', { nombre: clienteNombre, telefono: '', notas: '' }).then(newId => {
+            console.log("Cliente nuevo registrado con ID:", newId);
+          });
+        }
       }
 
       const data = {
@@ -190,7 +198,7 @@ const Citas = {
         hora: document.getElementById('ci-hora').value,
         servicioNombre: document.getElementById('ci-servicio-nombre').value.trim() || 'Corte',
         coste: parseFloat(document.getElementById('ci-coste').value) || 0,
-        notes: document.getElementById('ci-notas').value.trim(),
+        notas: document.getElementById('ci-notas').value.trim(),
         estado: estadoSeleccionado
       };
 
@@ -203,8 +211,13 @@ const Citas = {
       }
       
       UI.closeModal();
-      // Forzamos el repintado visual inmediato de la agenda al cerrar la modal
-      setTimeout(() => { this.render(); }, 100);
+      
+      // Pequeño retardo controlado para asegurar que pinte tras cerrar la modal
+      setTimeout(() => { 
+        if (typeof Citas !== 'undefined' && Citas.render) {
+          Citas.render(); 
+        }
+      }, 200);
     });
 
     if (isEdit) {
@@ -213,7 +226,11 @@ const Citas = {
         await DB.remove('citas', cita.id);
         UI.toast('Cita eliminada');
         UI.closeModal();
-        setTimeout(() => { this.render(); }, 100);
+        setTimeout(() => { 
+          if (typeof Citas !== 'undefined' && Citas.render) {
+            Citas.render(); 
+          }
+        }, 200);
       });
     }
   },
