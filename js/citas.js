@@ -239,3 +239,4 @@ const Citas = {
 document.getElementById('btn-nueva-cita').addEventListener('click', () => Citas.openForm());
 document.getElementById('prev-day').addEventListener('click', () => Citas.changeDay(-1));
 document.getElementById('next-day').addEventListener('click', () => Citas.changeDay(1));
+
