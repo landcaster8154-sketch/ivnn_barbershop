@@ -26,12 +26,13 @@ async function bootstrap() {
   DB.listen('clientes', (data) => {
     console.log("📦 Datos recibidos de la colección 'clientes':", data);
     STATE.clientes = data;
-    // Solo renderizamos si la función existe para evitar cortes de flujo
     if (typeof Clientes !== 'undefined' && Clientes.render) Clientes.render();
     if (typeof Historial !== 'undefined' && Historial.render) Historial.render();
   });
 
   DB.listen('citas', (data) => {
+    // CHIVATO: Esto te dirá exactamente qué citas bajan de internet al refrescar
+    console.log("📅 Datos recibidos de la colección 'citas':", data);
     STATE.citas = data;
     if (typeof Citas !== 'undefined' && Citas.render) Citas.render();
     if (typeof Historial !== 'undefined' && Historial.render) Historial.render();
@@ -39,6 +40,7 @@ async function bootstrap() {
   });
 
   DB.listen('servicios', (data) => {
+    console.log("🛠️ Datos recibidos de la colección 'servicios':", data);
     STATE.servicios = data;
     if (typeof Servicios !== 'undefined' && Servicios.render) Servicios.render();
   });
