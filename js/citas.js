@@ -175,27 +175,37 @@ const Citas = {
 
     document.getElementById('form-cita').addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      // Desactivamos el botón de submit para prevenir clicks duplicados accidentales
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+
       let clienteId = inputId.value;
       const clienteNombre = inputNombre.value.trim();
       
-      // SOLUCIÓN CRÍTICA: Bloquear con await para obtener el ID real de Firebase antes de proceder
+      // 1. Manejo secuencial estricto si el cliente es nuevo
       if (!clienteId) {
         const existente = STATE.clientes.find(c => c.nombre.toLowerCase() === clienteNombre.toLowerCase());
         if (existente) {
           clienteId = existente.id;
         } else {
           try {
-            // Esperamos la creación del cliente real en la base de datos
+            console.log("Registrando cliente nuevo antes de la cita...");
+            // Esperamos a Firebase para obtener el ID real
             clienteId = await DB.add('clientes', { nombre: clienteNombre, telefono: '', notas: '' });
-            console.log("Cliente nuevo registrado con éxito. ID Real:", clienteId);
+            
+            // Metemos el cliente en el array local inmediatamente para sincronizar flujos asíncronos
+            STATE.clientes.push({ id: clienteId, nombre: clienteNombre, telefono: '', notas: '' });
           } catch (err) {
             console.error("Error al registrar el cliente nuevo:", err);
             UI.toast('Error al crear el cliente');
+            if (submitBtn) submitBtn.disabled = false;
             return;
           }
         }
       }
 
+      // 2. Construcción limpia del objeto de datos
       const data = {
         clienteId,
         clienteNombre,
@@ -207,17 +217,28 @@ const Citas = {
         estado: estadoSeleccionado
       };
 
-      if (isEdit) {
-        await DB.update('citas', cita.id, data);
-        UI.toast('Cita actualizada');
-      } else {
-        await DB.add('citas', data);
-        UI.toast('Cita creada');
+      // 3. Persistencia en la base de datos Firestore
+      try {
+        if (isEdit) {
+          await DB.update('citas', cita.id, data);
+          UI.toast('Cita actualizada');
+        } else {
+          await DB.add('citas', data);
+          UI.toast('Cita creada');
+        }
+        
+        // 4. Cerramos el modal de la interfaz
+        UI.closeModal();
+
+        // 5. Renderizado limpio e inmediato de la vista actual
+        if (typeof Citas !== 'undefined' && Citas.render) {
+          Citas.render(); 
+        }
+      } catch (err) {
+        console.error("Error al procesar la cita:", err);
+        UI.toast('Error al guardar la cita');
+        if (submitBtn) submitBtn.disabled = false;
       }
-      
-      UI.closeModal();
-      // Ya no forzamos Citas.render() con un temporizador aquí.
-      // El escuchador reactivo DB.listen('citas') de app.js se encargará de pintar todo solo.
     });
 
     if (isEdit) {
@@ -239,4 +260,3 @@ const Citas = {
 document.getElementById('btn-nueva-cita').addEventListener('click', () => Citas.openForm());
 document.getElementById('prev-day').addEventListener('click', () => Citas.changeDay(-1));
 document.getElementById('next-day').addEventListener('click', () => Citas.changeDay(1));
-
