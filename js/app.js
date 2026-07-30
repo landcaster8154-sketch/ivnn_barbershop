@@ -24,22 +24,20 @@ async function bootstrap() {
 
   // Suscripciones en tiempo real activas (Renderizan siempre al recibir datos)
   DB.listen('clientes', (data) => {
-    // DIAGNÓSTICO: Ver qué datos exactos están llegando desde Firebase Firestore
     console.log("📦 Datos recibidos de la colección 'clientes':", data);
-    
     STATE.clientes = data;
-    Clientes.render();
+    // Solo renderizamos si la función existe para evitar cortes de flujo
+    if (typeof Clientes !== 'undefined' && Clientes.render) Clientes.render();
     if (typeof Historial !== 'undefined' && Historial.render) Historial.render();
   });
 
   DB.listen('citas', (data) => {
     STATE.citas = data;
-    Citas.render();
+    if (typeof Citas !== 'undefined' && Citas.render) Citas.render();
     if (typeof Historial !== 'undefined' && Historial.render) Historial.render();
-    Clientes.render();
+    if (typeof Clientes !== 'undefined' && Clientes.render) Clientes.render();
   });
 
-  // Escucha de servicios corregida (sin el parámetro de ordenamiento que congelaba la app)
   DB.listen('servicios', (data) => {
     STATE.servicios = data;
     if (typeof Servicios !== 'undefined' && Servicios.render) Servicios.render();
@@ -50,8 +48,8 @@ async function bootstrap() {
     btn.addEventListener('click', () => {
       setTimeout(() => {
         const activeView = btn.getAttribute('data-view');
-        if (activeView === 'clientes') Clientes.render();
-        if (activeView === 'agenda') Citas.render();
+        if (activeView === 'clientes' && typeof Clientes !== 'undefined') Clientes.render();
+        if (activeView === 'agenda' && typeof Citas !== 'undefined') Citas.render();
         if (activeView === 'historial' && typeof Historial !== 'undefined' && Historial.render) Historial.render();
         if (activeView === 'ajustes' && typeof Servicios !== 'undefined' && Servicios.render) Servicios.render();
       }, 50);
