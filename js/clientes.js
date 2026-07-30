@@ -1,5 +1,5 @@
 /* ============================================================
-   clientes.js — base de datos de clientes
+   clientes.js — base de datos de clientes (CORREGIDO)
    ============================================================ */
 
 const Clientes = {
@@ -14,7 +14,7 @@ const Clientes = {
     // Filtramos y aseguramos que 'c.nombre' exista siempre para evitar cuelgues
     let items = [...(STATE.clientes || [])].filter(c => c && c.nombre);
     
-    // Ordenamos con seguridad
+    // Ordenamos con seguridad alfábética
     items.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     
     if (term) items = items.filter(c => c.nombre.toLowerCase().includes(term));
@@ -45,13 +45,20 @@ const Clientes = {
               ${items.map(c => {
                 const citasCliente = (STATE.citas || []).filter(ci => ci && ci.clienteId === c.id && ci.estado === 'completada');
                 const total = citasCliente.reduce((s, ci) => s + (Number(ci.coste) || 0), 0);
-                const ultima = citasCliente.sort((a, b) => ((b.fecha || '') + (b.hora || '')).localeCompare((a.fecha || '') + (a.hora || '')))[0];
+                
+                // Ordenación segura comprobando que existan fecha y hora
+                const ultima = citasCliente.sort((a, b) => {
+                  const fechaB = (b.fecha || '') + (b.hora || '');
+                  const fechaA = (a.fecha || '') + (a.hora || '');
+                  return fechaB.localeCompare(fechaA);
+                })[0];
+
                 return `
                 <tr data-id="${c.id}">
                   <td>${c.nombre}</td>
                   <td class="muted">${c.telefono || '—'}</td>
                   <td class="notas">${c.notas || '—'}</td>
-                  <td class="muted">${ultima ? UI.fechaCorta(ultima.fecha) : '—'}</td>
+                  <td class="muted">${ultima && ultima.fecha ? UI.fechaCorta(ultima.fecha) : '—'}</td>
                   <td class="num gold">${UI.euros(total)}</td>
                 </tr>`;
               }).join('')}
@@ -138,12 +145,19 @@ const Clientes = {
   },
 
   openDetail(id) {
-    const cliente = STATE.clientes.find(c => c.id === id);
+    const cliente = (STATE.clientes || []).find(c => c.id === id);
     if (!cliente) return;
-    const citasCliente = STATE.citas.filter(c => c.clienteId === id);
+    
+    const citasCliente = (STATE.citas || []).filter(c => c && c.clienteId === id);
     const completadas = citasCliente.filter(c => c.estado === 'completada');
     const totalGastado = completadas.reduce((s, c) => s + (Number(c.coste) || 0), 0);
-    const ultima = completadas.sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora))[0];
+    
+    // Validación segura de strings para evitar errores de concatenación nula
+    const ultima = completadas.sort((a, b) => {
+      const stringB = (b.fecha || '') + (b.hora || '');
+      const stringA = (a.fecha || '') + (a.hora || '');
+      return stringB.localeCompare(stringA);
+    })[0];
 
     UI.openModal(`
       <div class="modal-header">
@@ -156,7 +170,7 @@ const Clientes = {
       </div>
       <div class="field"><label>Teléfono</label><div class="card">${cliente.telefono || '—'}</div></div>
       ${cliente.notas ? `<div class="field"><label>Notas</label><div class="card">${cliente.notas}</div></div>` : ''}
-      ${ultima ? `<div class="field"><label>Última visita</label><div class="card">${UI.fechaCorta(ultima.fecha)} · ${ultima.servicioNombre}</div></div>` : ''}
+      ${ultima && ultima.fecha ? `<div class="field"><label>Última visita</label><div class="card">${UI.fechaCorta(ultima.fecha)} · ${ultima.servicioNombre || 'Servicio'}</div></div>` : ''}
       <div class="modal-actions">
         <button class="btn-ghost" id="d-ver-historial">Ver historial</button>
         <button class="btn-gold" id="d-editar">Editar</button>
@@ -173,20 +187,24 @@ const Clientes = {
   }
 };
 
-// Inicialización e interceptor global de clics para evitar botones "muertos"
+// Inicialización e interceptores globales eficientes
 document.addEventListener('DOMContentLoaded', () => {
-  // Escucha de buscador si existe
-  const buscarCli = document.getElementById('buscar-cliente');
-  if (buscarCli) buscarCli.addEventListener('input', () => Clientes.render());
+  
+  // Delegación de entrada para el buscador: funciona dinámicamente si aparece después en el DOM
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'buscar-cliente') {
+      Clientes.render();
+    }
+  });
 
-  // Delegación global: Captura el clic del botón "+ Nuevo" sin importar cuándo se renderice
+  // Delegación global para capturar el botón "+ Nuevo cliente" sin importar cuándo se renderice
   document.addEventListener('click', (e) => {
     if (e.target && (e.target.id === 'btn-nuevo-cliente' || e.target.closest('#btn-nuevo-cliente'))) {
       Clientes.openForm();
     }
   });
 
-  // Detector de pestañas
+  // Multi-renderizado preventivo al cambiar de pestaña
   document.querySelectorAll('.tabbar button').forEach(btn => {
     btn.addEventListener('click', () => {
       setTimeout(() => { Clientes.render(); }, 50);
