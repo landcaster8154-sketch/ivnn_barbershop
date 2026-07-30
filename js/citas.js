@@ -149,7 +149,7 @@ const Citas = {
     const inputId = document.getElementById('ci-cliente-id');
     const autoList = document.getElementById('ci-autocomplete');
     inputNombre.addEventListener('input', () => {
-      inputId.value = ''; // si escribe, deja de estar "seleccionado" hasta que elija de la lista
+      inputId.value = '';
       const term = inputNombre.value.trim().toLowerCase();
       if (!term) { autoList.style.display = 'none'; return; }
       const matches = STATE.clientes.filter(c => c.nombre.toLowerCase().includes(term)).slice(0, 6);
@@ -168,6 +168,7 @@ const Citas = {
         });
       });
     });
+    
     document.addEventListener('click', (e) => {
       if (!autoList.contains(e.target) && e.target !== inputNombre) autoList.style.display = 'none';
     }, { once: true });
@@ -176,8 +177,8 @@ const Citas = {
       e.preventDefault();
       let clienteId = inputId.value;
       const clienteNombre = inputNombre.value.trim();
+      
       if (!clienteId) {
-        // cliente nuevo: lo creamos en la base de clientes
         const existente = STATE.clientes.find(c => c.nombre.toLowerCase() === clienteNombre.toLowerCase());
         clienteId = existente ? existente.id : await DB.add('clientes', { nombre: clienteNombre, telefono: '', notas: '' });
       }
@@ -189,7 +190,7 @@ const Citas = {
         hora: document.getElementById('ci-hora').value,
         servicioNombre: document.getElementById('ci-servicio-nombre').value.trim() || 'Corte',
         coste: parseFloat(document.getElementById('ci-coste').value) || 0,
-        notas: document.getElementById('ci-notas').value.trim(),
+        notes: document.getElementById('ci-notas').value.trim(),
         estado: estadoSeleccionado
       };
 
@@ -200,7 +201,10 @@ const Citas = {
         await DB.add('citas', data);
         UI.toast('Cita creada');
       }
+      
       UI.closeModal();
+      // Forzamos el repintado visual inmediato de la agenda al cerrar la modal
+      setTimeout(() => { this.render(); }, 100);
     });
 
     if (isEdit) {
@@ -209,6 +213,7 @@ const Citas = {
         await DB.remove('citas', cita.id);
         UI.toast('Cita eliminada');
         UI.closeModal();
+        setTimeout(() => { this.render(); }, 100);
       });
     }
   },
