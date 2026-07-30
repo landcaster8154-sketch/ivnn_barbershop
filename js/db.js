@@ -1,5 +1,5 @@
 /* ============================================================
-   db.js — inicialización de Firebase y helpers de datos
+   db.js — inicialización de Firebase y helpers de datos (CORREGIDO)
    ============================================================ */
 
 const DB = {
@@ -13,8 +13,10 @@ const DB = {
       throw new Error('Firebase no configurado');
     }
     
-    // Inicialización del servicio SDK
-    firebase.initializeApp(window.firebaseConfig);
+    // Inicialización del servicio SDK de forma segura
+    if (!firebase.apps.length) {
+      firebase.initializeApp(window.firebaseConfig);
+    }
     this.fs = firebase.firestore();
     this.ready = true;
   },
@@ -47,13 +49,12 @@ const DB = {
     return doc.exists ? { id: doc.id, ...doc.data() } : null;
   },
 
-  // Escucha en tiempo real con control de caché del servidor
+  // Escucha reactiva estándar en tiempo real sin bloqueos de caché vacía
   listen(colName, callback) {
-    return this.col(colName).onSnapshot({ includeMetadataChanges: true }, snap => {
-      // Evitamos procesar estados intermedios vacíos mientras conecta al servidor
-      if (snap.metadata.fromCache && snap.docs.length === 0) return;
-      
-      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    return this.col(colName).onSnapshot(snap => {
+      // Mapeamos los documentos que vienen de Firebase al instante
+      const documentos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      callback(documentos);
     }, err => console.error(`Error escuchando ${colName}:`, err));
   }
 };
